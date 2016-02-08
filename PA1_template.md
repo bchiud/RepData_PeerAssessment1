@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ******
 ##Overview
@@ -15,11 +10,53 @@ This is the first project for the reproducible research class.
 
 We'll load the necessary packages for this assignment.
 
-```{r echo=TRUE}
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 library(ggplot2)
+```
+
+```
+## Warning: package 'ggplot2' was built under R version 3.2.3
+```
+
+```r
 library(lubridate)
+```
+
+```
+## Warning: package 'lubridate' was built under R version 3.2.3
+```
+
+```r
 library(knitr)
+```
+
+```
+## Warning: package 'knitr' was built under R version 3.2.3
+```
+
+```r
 library(stats)
 ```
 
@@ -30,7 +67,8 @@ Note: We downloaded our source data from the provided [link](https://d396qusza40
 
 The following code downloads, unzips, and loads our data into a data frame.
 
-```{r echo=TRUE}
+
+```r
 setwd("/Users/bradychiu/Dropbox (Uber Technologies)/R/Coursera/05_Reproducible_Research/Assignment1")
 
 if(!file.exists("data/getdata-projectfiles-UCI HAR Dataset.zip")) {
@@ -49,7 +87,8 @@ data <- read.csv("activity.csv")
 
 First we'll calculate the daily steps.
 
-```{r echo=TRUE}
+
+```r
 daily_steps <- data %>%
   select(date,steps) %>% 
   na.omit() %>%
@@ -60,7 +99,8 @@ daily_steps <- data %>%
 
 Then we'll plot the results.
 
-```{r echo=TRUE}
+
+```r
 ggplot(data=daily_steps,aes(x=daily_steps))+
   geom_histogram(stat="bin",binwidth=1000,fill="#1FBAD6")+
   ggtitle("Histogram of Daily Steps")+
@@ -74,11 +114,29 @@ ggplot(data=daily_steps,aes(x=daily_steps))+
     )
 ```
 
+```
+## Warning: Removed 2 rows containing missing values (geom_bar).
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)
+
 Lastly, we'll calculate the means and meadians of the daily steps.
 
-```{r echo=TRUE}
+
+```r
 mean(daily_steps$daily_steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(daily_steps$daily_steps)
+```
+
+```
+## [1] 10765
 ```
 
 ******
@@ -86,7 +144,8 @@ median(daily_steps$daily_steps)
 
 We'll calculate the average steps taken during each time period, and plot it on a time series chart.
 
-```{r echo=TRUE}
+
+```r
 interval_steps <- data %>%
   select(interval,steps) %>%
   na.omit %>%
@@ -106,10 +165,17 @@ ggplot(interval_steps,aes(x=interval,y=avg_steps))+
     )
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)
+
 We'll find out which 5-minute interval contains the max number of steps
 
-```{r echo=TRUE}
+
+```r
 interval_steps$interval[which(interval_steps$avg_steps==max(interval_steps$avg_steps))]
+```
+
+```
+## [1] 835
 ```
 
 ******
@@ -117,13 +183,19 @@ interval_steps$interval[which(interval_steps$avg_steps==max(interval_steps$avg_s
 
 We'll calculate the number of missing values in the original dataset.
 
-```{r echo=TRUE}
+
+```r
 sum(is.na(data$steps))
+```
+
+```
+## [1] 2304
 ```
 
 We'll use the interval averages to build a loess model and estimate the progression of steps over the course of a day. Then we'll use this model to predict the number of steps for each interval of the day, and change any predicted negative values to 0.
 
-```{r echo=TRUE}
+
+```r
 data.lo <- loess(steps~interval,data)
 data.predict <- predict(data.lo,data.frame(interval=seq(0,2355,5)),se=T)
 predictions <- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(data.predict$fit<0,0,round(data.predict$fit,0)))
@@ -131,7 +203,8 @@ predictions <- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(data.pre
 
 We'll fill the missing values in our original data set with the values we imputed above.
 
-```{r echo=TRUE}
+
+```r
 data.imputed <- merge(data,predictions,all.x=T) %>%
   mutate(steps=ifelse(is.na(steps),predicted_steps,steps),predicted_steps=NULL) %>%
   arrange(date,interval) %>%
@@ -140,7 +213,8 @@ data.imputed <- merge(data,predictions,all.x=T) %>%
 
 We'll compute the new daily total steps, and plot a histogram with this data.
 
-```{r echo=TRUE}
+
+```r
 daily_steps.imputed <- data.imputed %>%
   select(date,steps) %>% 
   mutate(date=ymd(date)) %>%
@@ -160,11 +234,29 @@ ggplot(data=daily_steps.imputed,aes(x=daily_steps))+
     )
 ```
 
+```
+## Warning: Removed 2 rows containing missing values (geom_bar).
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)
+
 Lastly, we'll calculate the means and meadians of the new daily steps.
 
-```{r echo=TRUE}
+
+```r
 mean(daily_steps.imputed$daily_steps)
+```
+
+```
+## [1] 10814.3
+```
+
+```r
 median(daily_steps.imputed$daily_steps)
+```
+
+```
+## [1] 11133
 ```
 
 ******
@@ -172,14 +264,16 @@ median(daily_steps.imputed$daily_steps)
 
 We'll first add day of week to our new data set.
 
-```{r echo=TRUE}
+
+```r
 data.imputed$date <- ymd(data.imputed$date)
 data.imputed$day<-as.factor(ifelse(weekdays(data.imputed$date,abbreviate=T) %in% c("Mon","Tue","Wed","Thu","Fri"),"Weekday","Weekend"))
 ```
 
 Then we'll create a summary
 
-```{r echo=TRUE}
+
+```r
 day_of_week_data <- data.imputed %>%
   group_by(day,interval) %>%
   summarize(avg_steps=mean(steps))
@@ -187,7 +281,8 @@ day_of_week_data <- data.imputed %>%
 
 Lastly, we'll plot the data
 
-```{r echo=TRUE}
+
+```r
 ggplot(day_of_week_data,aes(x=interval,y=avg_steps))+
   geom_line(color="#1FBAD6")+
   facet_grid(day~.)+
@@ -201,3 +296,5 @@ ggplot(day_of_week_data,aes(x=interval,y=avg_steps))+
     ,axis.text=element_text(face="plain",size=12)
     )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-15-1.png)
