@@ -22,7 +22,7 @@ output:
 
 ```{r global_options}
 knitr::opts_chunk$set(
-  fig.path="figures/"
+  fig.path="figure/"
   ,fig.width=12
   )
 ```

@@ -16,7 +16,7 @@
 
 ```r
 knitr::opts_chunk$set(
-  fig.path="figures/"
+  fig.path="figure/"
   ,fig.width=12
   )
 ```
@@ -159,7 +159,7 @@ ggplot(
     )
 ```
 
-![](figures/unnamed-chunk-5-1.png)
+![](figure/unnamed-chunk-5-1.png)
 
 ## What is the average daily activity pattern?  
 
@@ -237,7 +237,7 @@ ggplot(
     )
 ```
 
-![](figures/unnamed-chunk-6-1.png)
+![](figure/unnamed-chunk-6-1.png)
 
 ******
 
@@ -367,7 +367,7 @@ ggplot(
     )
 ```
 
-![](figures/unnamed-chunk-10-1.png)
+![](figure/unnamed-chunk-10-1.png)
 
 ******
 
@@ -449,4 +449,4 @@ ggplot(
     )
 ```
 
-![](figures/unnamed-chunk-13-1.png)
+![](figure/unnamed-chunk-13-1.png)
