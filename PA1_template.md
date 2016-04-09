@@ -196,7 +196,8 @@ interval_steps
 
 ```r
 interval_max_steps<-interval_steps %>%
-  filter(interval==interval[which(avg_steps==max(avg_steps))])
+  filter(interval==interval[which(avg_steps==max(avg_steps))]) %>%
+  mutate(avg_steps=round(avg_steps,2))
 
 ggplot(
   interval_steps
