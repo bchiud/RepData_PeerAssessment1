@@ -16,8 +16,8 @@
 
 ```r
 knitr::opts_chunk$set(
-  cache=TRUE
-  ,fig.path="figures/"
+  fig.path="figures/"
+  ,fig.width=12
   )
 ```
 
