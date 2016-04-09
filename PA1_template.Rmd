@@ -3,201 +3,359 @@ title: "Reproducible Research: Peer Assessment 1"
 output: 
   html_document:
     keep_md: true
+    toc: true
+    toc_theme: united
 ---
 
 ******
-##Overview
+# Overview
 
-This is the first project for the reproducible research class.
+* This is the first project for the Reproducible Research class  
 
 ******
-##Packages
 
-We'll load the necessary packages for this assignment.
+# Pre-Processing
 
-```{r echo=TRUE}
-library(dplyr)
-library(ggplot2)
-library(lubridate)
-library(knitr)
-library(stats)
+## Markdown Configuration
+
+* We configure the settings for our markdown file  
+
+```{r global_options}
+knitr::opts_chunk$set(
+  cache=TRUE
+  ,fig.width=12
+  )
 ```
 
-******
-## Loading and preprocessing the data
+## Working Directory  
 
-Note: We downloaded our source data from the provided [link](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip).
+* We set our working directory  
 
-The following code downloads, unzips, and loads our data into a data frame.
+```{r}
+setwd("/Users/bradychiu/Dropbox (Uber Technologies)/R/Coursera/05_Reproducible_Research/Assignment1/RepData_PeerAssessment1")
+```
 
-```{r echo=TRUE}
-setwd("/Users/bradychiu/Dropbox (Uber Technologies)/R/Coursera/05_Reproducible_Research/Assignment1")
+## Packages
 
-if(!file.exists("data/getdata-projectfiles-UCI HAR Dataset.zip")) {
+* We load the necessary packages for this assignment  
+
+```{r}
+library(dplyr,warn.conflicts=F)
+library(ggplot2,warn.conflicts=F)
+library(lubridate,warn.conflicts=F)
+library(knitr,warn.conflicts=F)
+library(tidyr,warn.conflicts=F)
+```
+
+## Data Setup   
+
+* We download our source data from the provided [link](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)  
+* We then unzip and load our data  
+
+```{r}
+if(!file.exists("data")) dir.create("data/")
+
+if(!file.exists("data/activity.csv")) {
   temp <- tempfile()
   download.file("http://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip",temp)
-  unzip(temp)
+  unzip(temp,exdir="data/")
   unlink(temp)
   rm(temp)
 }
 
-data <- read.csv("activity.csv")
+activity_data<-read.csv("data/activity.csv")
 ```
 
 ******
-## What is mean total number of steps taken per day?
 
-First we'll calculate the daily steps.
+# Analysis  
 
-```{r echo=TRUE}
-daily_steps <- data %>%
+## What is mean total number of steps taken per day?  
+
+* We calculate the daily total steps  
+
+```{r}
+daily_steps<-activity_data %>%
   select(date,steps) %>% 
   na.omit() %>%
   mutate(date=ymd(date)) %>%
   group_by(date) %>%
   summarize(daily_steps=sum(steps))
+daily_steps
 ```
 
-Then we'll plot the results.
+* We make a histogram of the daily total steps, and add horizontal lines for the mean and median   
 
-```{r echo=TRUE}
-ggplot(data=daily_steps,aes(x=daily_steps))+
-  geom_histogram(stat="bin",binwidth=1000,fill="#1FBAD6")+
-  ggtitle("Histogram of Daily Steps")+
-  scale_x_continuous(name="Daily Steps",lim=c(0,25000))+
-  scale_y_continuous(name="Occurances",breaks=seq(0,20,2))+
+```{r fig.height=8}
+ggplot(
+  daily_steps
+  ,aes(x=date,y=daily_steps,fill=daily_steps))+
+  geom_bar(stat="identity")+
+  geom_hline(yintercept=mean(daily_steps$daily_steps),linetype="dashed")+
+  geom_text(
+    aes(
+      label=paste(
+        "Mean :"
+        ,format(
+          round(mean(daily_steps),2)
+          ,big.mark=","
+          ,trim=T
+          )
+        )
+      ,x=min(date)+ddays(1)
+      ,y=mean(daily_steps)
+      ,vjust=-1
+      )
+    )+
+  geom_hline(yintercept=median(daily_steps$daily_steps),linetype="dashed")+
+  geom_text(
+    aes(
+      label=paste(
+        "Median :"
+        ,format(
+          median(daily_steps)
+          ,big.mark=","
+          ,trim=T
+          )
+        )
+      ,x=min(date)+ddays(1)
+      ,y=median(daily_steps)
+      ,vjust=2
+      )
+    )+
+  ggtitle("Daily Steps")+
+  scale_x_datetime(
+    name="Date"
+    ,date_breaks="2 week"
+    ,date_labels="%Y-%m-%d"
+    )+
+  scale_y_continuous(
+    name="Steps"
+    )+
   theme(
-    legend.position="none"
-    ,title=element_text(color="#1FBAD6",face="bold",size=20)
-    ,axis.title=element_text(face="plain",size=16)
-    ,axis.text=element_text(face="plain",size=12)
+    plot.title=element_text(face="bold",size=16)
+    ,axis.title=element_text(face="bold",size=14)
+    ,axis.text=element_text(size=12)
+    ,legend.position="none"
+    ,legend.text=element_text(size=10)
+    ,strip.text=element_text(size=12)
     )
 ```
 
-Lastly, we'll calculate the means and meadians of the daily steps.
+## What is the average daily activity pattern?  
 
-```{r echo=TRUE}
-mean(daily_steps$daily_steps)
-median(daily_steps$daily_steps)
-```
+* We calculate the average steps taken during each time period, and plot the results on a time series chart  
+* We also determine which 5-minute interval contains the max number of steps  
 
-******
-## What is the average daily activity pattern?
-
-We'll calculate the average steps taken during each time period, and plot it on a time series chart.
-
-```{r echo=TRUE}
-interval_steps <- data %>%
-  select(interval,steps) %>%
+```{r}
+interval_steps<-activity_data %>%
+  dplyr::select(interval,steps) %>%
   na.omit %>%
   group_by(interval) %>%
   summarize(avg_steps=mean(steps))
+interval_steps
 
-ggplot(interval_steps,aes(x=interval,y=avg_steps))+
-  geom_line(color="#1FBAD6")+
+interval_max_steps<-interval_steps %>%
+  filter(interval==interval[which(avg_steps==max(avg_steps))])
+
+ggplot(
+  interval_steps
+  ,aes(x=interval,y=avg_steps)
+  )+
+  geom_line()+
+  geom_vline(
+    data=interval_max_steps
+    ,linetype="dashed"
+    ,aes(xintercept=interval_max_steps$interval)
+    )+
+  geom_text(
+    data=interval_max_steps
+    ,aes(
+      label=paste(
+        "Time w/ Maximum Average Steps :"
+        ,format(
+          avg_steps
+          ,big.mark=","
+          ,trim=T
+          )
+        )
+      ,x=interval
+      ,y=avg_steps
+      ,hjust=-0.05
+      )
+    )+
   ggtitle("Average Steps by Time")+
   scale_x_continuous(name="Time")+
   scale_y_continuous(name="Average Steps")+
   theme(
-    legend.position="none"
-    ,title=element_text(color="#1FBAD6",face="bold",size=20)
-    ,axis.title=element_text(face="plain",size=16)
-    ,axis.text=element_text(face="plain",size=12)
+    plot.title=element_text(face="bold",size=16)
+    ,axis.title=element_text(face="bold",size=14)
+    ,axis.text=element_text(size=12)
+    ,legend.position="none"
+    ,legend.text=element_text(size=10)
+    ,strip.text=element_text(size=12)
     )
 ```
 
-We'll find out which 5-minute interval contains the max number of steps
-
-```{r echo=TRUE}
-interval_steps$interval[which(interval_steps$avg_steps==max(interval_steps$avg_steps))]
-```
-
 ******
-## Imputing missing values
 
-We'll calculate the number of missing values in the original dataset.
+## Imputing missing values  
 
-```{r echo=TRUE}
-sum(is.na(data$steps))
+* We calculate the number of missing values in the original dataset  
+
+```{r}
+paste(
+  "Total Number of Missing Values :"
+  ,format(sum(is.na(activity_data$steps)),big.mark=",",trim=T)
+  )
 ```
 
-We'll use the interval averages to build a loess model and estimate the progression of steps over the course of a day. Then we'll use this model to predict the number of steps for each interval of the day, and change any predicted negative values to 0.
+* We use the interval averages to build a loess model and estimate the progression of steps over the course of a day  
+* We then use this model to predict the number of steps for each interval of the day  
+    + Any negative predicted values are changed to 0  
 
-```{r echo=TRUE}
-data.lo <- loess(steps~interval,data)
-data.predict <- predict(data.lo,data.frame(interval=seq(0,2355,5)),se=T)
-predictions <- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(data.predict$fit<0,0,round(data.predict$fit,0)))
+```{r}
+daily_steps.lo <- loess(steps~interval,activity_data)
+daily_steps.predict <- predict(daily_steps.lo,data.frame(interval=seq(0,2355,5)),se=T)
+predictions <- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(daily_steps.predict$fit<0,0,round(daily_steps.predict$fit,0)))
 ```
 
-We'll fill the missing values in our original data set with the values we imputed above.
+* We fill the missing values in our original data set with the values we imputed above  
 
-```{r echo=TRUE}
-data.imputed <- merge(data,predictions,all.x=T) %>%
-  mutate(steps=ifelse(is.na(steps),predicted_steps,steps),predicted_steps=NULL) %>%
-  arrange(date,interval) %>%
-  select(date,interval,steps)
+```{r}
+activity_data.imputed <- merge(activity_data,predictions,all.x=T) %>%
+  mutate(
+    date=ymd(date)
+    ,steps=ifelse(is.na(steps),predicted_steps,steps),predicted_steps=NULL
+    ) %>%
+  dplyr::select(date,interval,steps) %>%
+  arrange(date,interval)
 ```
 
-We'll compute the new daily total steps, and plot a histogram with this data.
+* We compute the new daily total steps, and plot a histogram with this data, and add horizontal lines for the mean and median  
 
-```{r echo=TRUE}
-daily_steps.imputed <- data.imputed %>%
+```{r fig.height=8}
+daily_steps.imputed<-activity_data.imputed %>%
   select(date,steps) %>% 
   mutate(date=ymd(date)) %>%
   group_by(date) %>%
   summarize(daily_steps=sum(steps))
+daily_steps.imputed
 
-ggplot(data=daily_steps.imputed,aes(x=daily_steps))+
-  geom_histogram(stat="bin",binwidth=1000,fill="#1FBAD6")+
-  ggtitle("Histogram of Daily Steps")+
-  scale_x_continuous(name="Daily Steps",lim=c(0,25000))+
-  scale_y_continuous(name="Occurances",breaks=seq(0,20,2))+
+ggplot(
+  daily_steps.imputed
+  ,aes(x=date,y=daily_steps,fill=daily_steps))+
+  geom_bar(stat="identity")+
+  geom_hline(yintercept=mean(daily_steps.imputed$daily_steps),linetype="dashed")+
+  geom_text(
+    aes(
+      label=paste(
+        "Mean :"
+        ,format(
+          round(mean(daily_steps),2)
+          ,big.mark=","
+          ,trim=T
+          )
+        )
+      ,x=min(date)+ddays(1)
+      ,y=mean(daily_steps)
+      ,vjust=2
+      )
+    )+
+  geom_hline(yintercept=median(daily_steps.imputed$daily_steps),linetype="dashed")+
+  geom_text(
+    aes(
+      label=paste(
+        "Median :"
+        ,format(
+          median(daily_steps)
+          ,big.mark=","
+          ,trim=T
+          )
+        )
+      ,x=min(date)+ddays(1)
+      ,y=median(daily_steps)
+      ,vjust=-1
+      )
+    )+
+  ggtitle("Daily Steps")+
+  scale_x_datetime(
+    name="Date"
+    ,date_breaks="2 week"
+    ,date_labels="%Y-%m-%d"
+    )+
+  scale_y_continuous(
+    name="Steps"
+    )+
   theme(
-    legend.position="none"
-    ,title=element_text(color="#1FBAD6",face="bold",size=20)
-    ,axis.title=element_text(face="plain",size=16)
-    ,axis.text=element_text(face="plain",size=12)
+    plot.title=element_text(face="bold",size=16)
+    ,axis.title=element_text(face="bold",size=14)
+    ,axis.text=element_text(size=12)
+    ,legend.position="none"
+    ,legend.text=element_text(size=10)
+    ,strip.text=element_text(size=12)
     )
 ```
 
-Lastly, we'll calculate the means and meadians of the new daily steps.
-
-```{r echo=TRUE}
-mean(daily_steps.imputed$daily_steps)
-median(daily_steps.imputed$daily_steps)
-```
-
 ******
-## Are there differences in activity patterns between weekdays and weekends?
 
-We'll first add day of week to our new data set.
+## Are there differences in activity patterns between weekdays and weekends?  
 
-```{r echo=TRUE}
-data.imputed$date <- ymd(data.imputed$date)
-data.imputed$day<-as.factor(ifelse(weekdays(data.imputed$date,abbreviate=T) %in% c("Mon","Tue","Wed","Thu","Fri"),"Weekday","Weekend"))
+* We first add day of week to our new data set  
+
+```{r}
+activity_data.imputed$date <- ymd(activity_data.imputed$date)
+activity_data.imputed$day<-as.factor(ifelse(weekdays(activity_data.imputed$date,abbreviate=T) %in% c("Mon","Tue","Wed","Thu","Fri"),"Weekday","Weekend"))
+head(activity_data.imputed,10)
 ```
 
-Then we'll create a summary
+* We create a summary of Weekdays Vs. Weekends  
 
-```{r echo=TRUE}
-day_of_week_data <- data.imputed %>%
+```{r}
+day_of_week_data<-activity_data.imputed %>%
   group_by(day,interval) %>%
   summarize(avg_steps=mean(steps))
+
+day_of_week_means<-day_of_week_data %>%
+  group_by(day) %>%
+  summarize(mean=mean(avg_steps))
 ```
 
-Lastly, we'll plot the data
+* We plot the results, and add horizontal lines for the means  
 
-```{r echo=TRUE}
-ggplot(day_of_week_data,aes(x=interval,y=avg_steps))+
-  geom_line(color="#1FBAD6")+
+```{r fig.height=8}
+ggplot(
+  day_of_week_data
+  ,aes(x=interval,y=avg_steps,color=day)
+  )+
+  geom_line()+
   facet_grid(day~.)+
+  geom_hline(
+    data=day_of_week_means
+    ,linetype="dashed"
+    ,aes(
+      yintercept=mean
+      ,color=day
+      )
+    )+
+  geom_text(
+    data=day_of_week_means
+    ,aes(
+      label=paste("Mean :",format(round(mean,2),big.mark=",",trim=T))
+      ,x=1
+      ,y=mean
+      ,vjust=-1
+      )
+    )+
   ggtitle("Average Steps by Time")+
   scale_x_continuous(name="Interval")+
   scale_y_continuous(name="Average Steps")+
   theme(
-    legend.position="none"
-    ,title=element_text(color="#1FBAD6",face="bold",size=20)
-    ,axis.title=element_text(face="plain",size=16)
-    ,axis.text=element_text(face="plain",size=12)
+    plot.title=element_text(face="bold",size=16)
+    ,axis.title=element_text(face="bold",size=14)
+    ,axis.text=element_text(size=12)
+    ,legend.position="none"
+    ,legend.text=element_text(size=10)
+    ,strip.text=element_text(size=12)
     )
 ```
