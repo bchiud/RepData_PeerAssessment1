@@ -45,6 +45,8 @@ library(ggplot2,warn.conflicts=F)
 library(lubridate,warn.conflicts=F)
 library(knitr,warn.conflicts=F)
 library(tidyr,warn.conflicts=F)
+
+sessionInfo()
 ```
 
 ## Data Setup   
