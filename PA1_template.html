@@ -133,7 +133,7 @@ if(!file.exists(&quot;data/activity.csv&quot;)) {
   unzip(temp,exdir=&quot;data/&quot;)
   unlink(temp)
   rm(temp)
-}
+  }
 
 activity_data&lt;-read.csv(&quot;data/activity.csv&quot;)</code></pre>
 <hr />
@@ -147,7 +147,7 @@ activity_data&lt;-read.csv(&quot;data/activity.csv&quot;)</code></pre>
 <li>We calculate the daily total steps</li>
 </ul>
 <pre class="r"><code>daily_steps&lt;-activity_data %&gt;%
-  select(date,steps) %&gt;% 
+  dplyr::select(date,steps) %&gt;% 
   na.omit() %&gt;%
   mutate(date=ymd(date)) %&gt;%
   group_by(date) %&gt;%
@@ -331,7 +331,7 @@ predictions &lt;- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(daily
 <li>We compute the new daily total steps, and plot a histogram with this data, and add horizontal lines for the mean and median</li>
 </ul>
 <pre class="r"><code>daily_steps.imputed&lt;-activity_data.imputed %&gt;%
-  select(date,steps) %&gt;% 
+  dplyr::select(date,steps) %&gt;% 
   mutate(date=ymd(date)) %&gt;%
   group_by(date) %&gt;%
   summarize(daily_steps=sum(steps))

@@ -58,7 +58,7 @@ if(!file.exists("data/activity.csv")) {
   unzip(temp,exdir="data/")
   unlink(temp)
   rm(temp)
-}
+  }
 
 activity_data<-read.csv("data/activity.csv")
 ```
@@ -74,7 +74,7 @@ activity_data<-read.csv("data/activity.csv")
 
 ```r
 daily_steps<-activity_data %>%
-  select(date,steps) %>% 
+  dplyr::select(date,steps) %>% 
   na.omit() %>%
   mutate(date=ymd(date)) %>%
   group_by(date) %>%
@@ -287,7 +287,7 @@ activity_data.imputed <- merge(activity_data,predictions,all.x=T) %>%
 
 ```r
 daily_steps.imputed<-activity_data.imputed %>%
-  select(date,steps) %>% 
+  dplyr::select(date,steps) %>% 
   mutate(date=ymd(date)) %>%
   group_by(date) %>%
   summarize(daily_steps=sum(steps))
