@@ -1,9 +1,9 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
+title: 'Reproducible Research: Peer Assessment 1'
+output:
   html_document:
-    keep_md: true
-    toc: true
+    keep_md: yes
+    toc: yes
     toc_theme: united
 ---
 
@@ -23,7 +23,7 @@ output:
 ```{r global_options}
 knitr::opts_chunk$set(
   cache=TRUE
-  ,fig.width=12
+  ,fig.path="figures/"
   )
 ```
 
