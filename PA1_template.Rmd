@@ -31,7 +31,7 @@ knitr::opts_chunk$set(
 
 * We set our working directory  
 
-```{r}
+```{r working_directory}
 setwd("/Users/bradychiu/Dropbox (Uber Technologies)/R/Coursera/05_Reproducible_Research/Assignment1/RepData_PeerAssessment1")
 ```
 
@@ -39,7 +39,7 @@ setwd("/Users/bradychiu/Dropbox (Uber Technologies)/R/Coursera/05_Reproducible_R
 
 * We load the necessary packages for this assignment  
 
-```{r}
+```{r packages}
 library(dplyr,warn.conflicts=F)
 library(ggplot2,warn.conflicts=F)
 library(lubridate,warn.conflicts=F)
@@ -52,7 +52,7 @@ library(tidyr,warn.conflicts=F)
 * We download our source data from the provided [link](https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip)  
 * We then unzip and load our data  
 
-```{r}
+```{r data_setup}
 if(!file.exists("data")) dir.create("data/")
 
 if(!file.exists("data/activity.csv")) {
@@ -74,7 +74,7 @@ activity_data<-read.csv("data/activity.csv")
 
 * We calculate the daily total steps  
 
-```{r}
+```{r daily_steps_data}
 daily_steps<-activity_data %>%
   dplyr::select(date,steps) %>% 
   na.omit() %>%
@@ -86,7 +86,7 @@ daily_steps
 
 * We make a histogram of the daily total steps, and add horizontal lines for the mean and median   
 
-```{r fig.height=8}
+```{r daily_steps_plot,fig.height=8}
 ggplot(
   daily_steps
   ,aes(x=date,y=daily_steps,fill=daily_steps))+
@@ -147,7 +147,7 @@ ggplot(
 * We calculate the average steps taken during each time period, and plot the results on a time series chart  
 * We also determine which 5-minute interval contains the max number of steps  
 
-```{r}
+```{r daily_avg}
 interval_steps<-activity_data %>%
   dplyr::select(interval,steps) %>%
   na.omit %>%
@@ -204,7 +204,7 @@ ggplot(
 
 * We calculate the number of missing values in the original dataset  
 
-```{r}
+```{r missing_values_count}
 paste(
   "Total Number of Missing Values :"
   ,format(sum(is.na(activity_data$steps)),big.mark=",",trim=T)
@@ -215,7 +215,7 @@ paste(
 * We then use this model to predict the number of steps for each interval of the day  
     + Any negative predicted values are changed to 0  
 
-```{r}
+```{r missing_values_prediction}
 daily_steps.lo <- loess(steps~interval,activity_data)
 daily_steps.predict <- predict(daily_steps.lo,data.frame(interval=seq(0,2355,5)),se=T)
 predictions <- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(daily_steps.predict$fit<0,0,round(daily_steps.predict$fit,0)))
@@ -223,7 +223,7 @@ predictions <- data.frame(interval=seq(0,2355,5),predicted_steps=ifelse(daily_st
 
 * We fill the missing values in our original data set with the values we imputed above  
 
-```{r}
+```{r missing_values_data}
 activity_data.imputed <- merge(activity_data,predictions,all.x=T) %>%
   mutate(
     date=ymd(date)
@@ -235,7 +235,7 @@ activity_data.imputed <- merge(activity_data,predictions,all.x=T) %>%
 
 * We compute the new daily total steps, and plot a histogram with this data, and add horizontal lines for the mean and median  
 
-```{r fig.height=8}
+```{r missing_values_plot,fig.height=8}
 daily_steps.imputed<-activity_data.imputed %>%
   dplyr::select(date,steps) %>% 
   mutate(date=ymd(date)) %>%
@@ -303,16 +303,13 @@ ggplot(
 ## Are there differences in activity patterns between weekdays and weekends?  
 
 * We first add day of week to our new data set  
+* We create a summary of Weekdays Vs. Weekends  
 
-```{r}
+```{r day_of_week_data}
 activity_data.imputed$date <- ymd(activity_data.imputed$date)
 activity_data.imputed$day<-as.factor(ifelse(weekdays(activity_data.imputed$date,abbreviate=T) %in% c("Mon","Tue","Wed","Thu","Fri"),"Weekday","Weekend"))
 head(activity_data.imputed,10)
-```
 
-* We create a summary of Weekdays Vs. Weekends  
-
-```{r}
 day_of_week_data<-activity_data.imputed %>%
   group_by(day,interval) %>%
   summarize(avg_steps=mean(steps))
@@ -324,7 +321,7 @@ day_of_week_means<-day_of_week_data %>%
 
 * We plot the results, and add horizontal lines for the means  
 
-```{r fig.height=8}
+```{r day_of_week_plot,fig.height=8}
 ggplot(
   day_of_week_data
   ,aes(x=interval,y=avg_steps,color=day)

@@ -159,7 +159,7 @@ ggplot(
     )
 ```
 
-![](figure/unnamed-chunk-5-1.png)
+![](figure/daily_steps_plot-1.png)
 
 ## What is the average daily activity pattern?  
 
@@ -238,7 +238,7 @@ ggplot(
     )
 ```
 
-![](figure/unnamed-chunk-6-1.png)
+![](figure/daily_avg-1.png)
 
 ******
 
@@ -368,13 +368,14 @@ ggplot(
     )
 ```
 
-![](figure/unnamed-chunk-10-1.png)
+![](figure/missing_values_plot-1.png)
 
 ******
 
 ## Are there differences in activity patterns between weekdays and weekends?  
 
 * We first add day of week to our new data set  
+* We create a summary of Weekdays Vs. Weekends  
 
 
 ```r
@@ -396,9 +397,6 @@ head(activity_data.imputed,10)
 ## 9  2012-10-01       40     0 Weekday
 ## 10 2012-10-01       45     0 Weekday
 ```
-
-* We create a summary of Weekdays Vs. Weekends  
-
 
 ```r
 day_of_week_data<-activity_data.imputed %>%
@@ -450,4 +448,4 @@ ggplot(
     )
 ```
 
-![](figure/unnamed-chunk-13-1.png)
+![](figure/day_of_week_plot-1.png)

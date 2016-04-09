@@ -410,7 +410,8 @@ daily_steps.imputed</code></pre>
 <div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">
 <h2>Are there differences in activity patterns between weekdays and weekends?</h2>
 <ul>
-<li>We first add day of week to our new data set</li>
+<li>We first add day of week to our new data set<br /></li>
+<li>We create a summary of Weekdays Vs. Weekends</li>
 </ul>
 <pre class="r"><code>activity_data.imputed$date &lt;- ymd(activity_data.imputed$date)
 activity_data.imputed$day&lt;-as.factor(ifelse(weekdays(activity_data.imputed$date,abbreviate=T) %in% c(&quot;Mon&quot;,&quot;Tue&quot;,&quot;Wed&quot;,&quot;Thu&quot;,&quot;Fri&quot;),&quot;Weekday&quot;,&quot;Weekend&quot;))
@@ -426,9 +427,6 @@ head(activity_data.imputed,10)</code></pre>
 ## 8  2012-10-01       35     0 Weekday
 ## 9  2012-10-01       40     0 Weekday
 ## 10 2012-10-01       45     0 Weekday</code></pre>
-<ul>
-<li>We create a summary of Weekdays Vs. Weekends</li>
-</ul>
 <pre class="r"><code>day_of_week_data&lt;-activity_data.imputed %&gt;%
   group_by(day,interval) %&gt;%
   summarize(avg_steps=mean(steps))
